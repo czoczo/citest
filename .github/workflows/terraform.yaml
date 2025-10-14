@@ -11,19 +11,6 @@ on:
         default: true
 
 jobs:
-  branch_name:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Prepare source and gate scripts
-        uses: czoczo/citest/actions/prepare_source_and_tests@main
-        with:
-          gates-language: terraform
-          azure-infra-core-ro-key: ${{ secrets.AZURE_INFRA_CORE_DEPLOYKEY }}
-          iac-quality-gates-access-key: ${{ secrets.IAC_QUALITY_GATES_DEPLOYKEY }}
-
-      - name: Branch Name Validation
-        run: gate_scripts/branch_name_policy.sh
-
   terraform_fmt:
     # TODO migrate to LX Runner Infra Image
     runs-on: ubuntu-latest

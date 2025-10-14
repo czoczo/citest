@@ -18,7 +18,7 @@ runs:
         uses: actions/checkout@v4
         with:
           clean: false
-          repository: czoczo/citestcaller
+          repository: czoczo/citest
           # Needed because `github.token doesn't have permissions to read other repos in org
           path: gates_temp
           sparse-checkout: |

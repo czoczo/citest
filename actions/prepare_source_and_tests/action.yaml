@@ -1,0 +1,29 @@
+name: 'Prepare source code and tests'
+description: 'Common steps for all quality gates'
+inputs:
+  gates-language:
+    description: 'What Infrastructure as Code language should be checked.'
+    required: true
+    default: terraform
+runs:
+  using: "composite"
+  steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: Checkout quality gates scripts
+        if: github.repository != 'LUXMED/iac-quality-gates'
+        uses: actions/checkout@v4
+        with:
+          clean: false
+          repository: czoczo/citestcaller/
+          # Needed because `github.token doesn't have permissions to read other repos in org
+          path: gates_temp
+          sparse-checkout: |
+            gate_scripts/${{ inputs.gates-language }}
+
+      - name: Reorganize tests folder location
+        run: 'mv gates_temp/gate_scripts/${{ inputs.gates-language }} ./gate_scripts && rm -rf gates_temp'
+        shell: bash

@@ -1,0 +1,59 @@
+name: Terraform tests
+run-name: Quality Gates for branch ${{ github.ref_name }}
+
+on:
+  workflow_call:
+    inputs:
+      global_scan:
+        description: 'Enable global scan mode (default: false)'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  branch_name:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare source and gate scripts
+        uses: czoczo/citest/actions/prepare_source_and_tests@main
+        with:
+          gates-language: terraform
+          azure-infra-core-ro-key: ${{ secrets.AZURE_INFRA_CORE_DEPLOYKEY }}
+          iac-quality-gates-access-key: ${{ secrets.IAC_QUALITY_GATES_DEPLOYKEY }}
+
+      - name: Branch Name Validation
+        run: gate_scripts/branch_name_policy.sh
+
+  terraform_fmt:
+    # TODO migrate to LX Runner Infra Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare source and gate scripts
+        uses: czoczo/citest/actions/prepare_source_and_tests@main
+        with:
+          gates-language: terraform
+      
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Format Terraform code
+        run: |
+          GLOBAL_SCAN=$([[ "${{ inputs.global_scan }}" == "true" ]] && echo "-all" || echo "")
+          gate_scripts/tests/terraform-fmt.sh $GLOBAL_SCAN
+
+  terraform_validate:
+    # TODO migrate to LX Runner Infra Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare source and gate scripts
+        uses: czoczo/citest/actions/prepare_source_and_tests@main
+        with:
+          gates-language: terraform
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+   
+      - name: Validate Terraform code
+        run: |
+          GLOBAL_SCAN=$([[ "${{ inputs.global_scan }}" == "true" ]] && echo "-all" || echo "")
+          gate_scripts/tests/terraform-validate.sh $GLOBAL_SCAN

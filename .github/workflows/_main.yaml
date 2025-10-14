@@ -1,0 +1,58 @@
+name: Infrastructure as Code Quality Gates
+run-name: IaC Gate tests for branch ${{ github.ref_name }}
+
+on:
+  workflow_call:
+    inputs:
+      global_scan:
+        description: 'Enable global scan mode (default: false)'
+        required: false
+        type: boolean
+        default: true
+    outputs:
+      validate-and-test:
+        description: "Overall status for code validation and testing"
+        value: ${{ jobs.pass-checks-statuses.outputs.validate-and-test-success }}
+      security-checks:
+        description: "Overall status for code security checks"
+        value: ${{ jobs.pass-checks-statuses.outputs.security-checks-success }}
+  push:
+    branches:
+      - main
+      - release/*
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+
+  # Terraform
+  
+  find_terraform_files:
+    runs-on: ubuntu-latest
+    name: Terraform files present
+    outputs:
+      real_status: ${{ steps.terraform_present.outcome }}
+    continue-on-error: true
+    steps: 
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+
+      - name: Search for Terraform files
+        id: terraform_present
+        run: |
+          [ "${{ github.repository }}" == 'czoczo/citest' ] || find . -type f -name "*.tf" | grep -q .
+    
+  terraform_tests:
+    name: Terraform tests
+    needs: find_terraform_files
+    if: needs.find_terraform_files.outputs.real_status == 'success'
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    uses: ./.github/workflows/terraform.yaml
+    secrets: inherit
+    with:
+      global_scan: ${{ github.event_name == 'workflow_call' && inputs.global_scan || false }}
+

@@ -5,7 +5,7 @@ on:
   workflow_call:
     inputs:
       global_scan:
-        description: 'Enable global scan mode (default: false)'
+        description: 'Enable global scan mode (default: true)'
         required: false
         type: boolean
         default: true
@@ -22,6 +22,12 @@ jobs:
       
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
+
+      - name: DEBUG
+        run: |
+          echo "1: ${{ inputs.global_scan }}"
+          GLOBAL_SCAN=$([[ "${{ inputs.global_scan }}" == "true" ]] && echo "-all" || echo "")
+          echo "2: $GLOBAL_SCAN"
 
       - name: Format Terraform code
         run: |

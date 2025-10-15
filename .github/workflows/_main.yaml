@@ -54,5 +54,5 @@ jobs:
     uses: ./.github/workflows/terraform.yaml
     secrets: inherit
     with:
-      global_scan: ${{ github.event_name == 'workflow_call' && inputs.global_scan || false }}
+      global_scan: ${{ inputs.global_scan }}
 
